@@ -46,6 +46,7 @@ interface Lesson {
 export default function NewCoursePage() {
   const { success, error } = useToast();
   const supabase = createClient();
+  const thumbInputRef = useRef<HTMLInputElement>(null);
 
   const [course, setCourse] = useState({ 
     title: '', 
@@ -184,21 +185,32 @@ export default function NewCoursePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // 20MB limit (20 * 1024 * 1024 bytes)
+    if (file.size > 20 * 1024 * 1024) {
+      error("Thumbnail is too large. Maximum size is 20MB.");
+      return;
+    }
+
     setUploadingThumb(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      
       const { data, error: uploadError } = await supabase.storage
         .from('course-thumbnails')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage.from('course-thumbnails').getPublicUrl(fileName);
       setCourse({ ...course, thumbnail_url: publicUrl });
-      success("Thumbnail uploaded");
+      success("Thumbnail uploaded successfully");
     } catch (err: any) {
-      error("Thumbnail upload failed");
+      console.error("Upload error:", err);
+      error(err.message || "Thumbnail upload failed. Please check your connection.");
     } finally {
       setUploadingThumb(false);
     }
@@ -337,16 +349,34 @@ export default function NewCoursePage() {
                   <option value="All Levels">All Levels</option>
                 </select>
              </div>
-             <div className="flex flex-col gap-2">
-                <label className="font-sans font-medium text-[13px] text-[#0f172a]">Course Thumbnail</label>
-                <div className="flex items-center gap-4">
-                   <div className="w-[44px] h-[44px] rounded-[10px] bg-[#f8fafc] border border-dashed border-[#e8edf5] flex items-center justify-center overflow-hidden shrink-0">
-                      {course.thumbnail_url ? <img src={course.thumbnail_url} className="w-full h-full object-cover" /> : <ImageIcon size={20} className="text-[#cbd5e1]" />}
-                   </div>
-                   <label className="h-[44px] px-4 border border-[#e8edf5] rounded-[10px] flex items-center justify-center gap-2 cursor-pointer hover:bg-[#f8fafc] transition-colors text-[13px] font-sans font-medium">
-                      {uploadingThumb ? <Loader2 size={16} className="animate-spin" /> : <><UploadCloud size={16} /> Upload Thumbnail</>}
-                      <input type="file" className="hidden" accept="image/*" onChange={handleThumbnailUpload} disabled={uploadingThumb} />
-                   </label>
+              <div className="flex flex-col gap-2">
+                <label className="font-sans font-medium text-[13px] text-[#0f172a]">Course Thumbnail (Max 20MB)</label>
+                <div 
+                  onClick={() => thumbInputRef.current?.click()}
+                  className="w-full h-[120px] rounded-[16px] border-2 border-dashed border-[#e8edf5] bg-[#f8fafc] hover:bg-[#f1f5f9] transition-all flex flex-col items-center justify-center cursor-pointer relative overflow-hidden"
+                >
+                  {uploadingThumb ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 size={24} className="animate-spin text-[#0f4ff1]" />
+                      <span className="font-sans text-[12px] text-[#6b7280]">Uploading...</span>
+                    </div>
+                  ) : course.thumbnail_url ? (
+                    <>
+                      <img src={course.thumbnail_url} className="absolute inset-0 w-full h-full object-cover" alt="Thumb" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
+                         <span className="text-white font-heading font-bold text-[13px] flex items-center gap-2">
+                           <ImageIcon size={16} /> Replace Image
+                         </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon size={32} className="text-[#cbd5e1] mb-2" />
+                      <span className="font-sans text-[13px] text-[#6b7280]">Click to upload course image</span>
+                      <span className="font-sans text-[11px] text-[#9ca3af] mt-1 text-center">Standard course card preview</span>
+                    </>
+                  )}
+                  <input type="file" ref={thumbInputRef} className="hidden" accept="image/*" onChange={handleThumbnailUpload} />
                 </div>
              </div>
           </div>
