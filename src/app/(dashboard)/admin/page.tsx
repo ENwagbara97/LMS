@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Users, Megaphone, Plus } from 'lucide-react';
+import { Users, Megaphone, Plus, BookOpen } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [mounted, setMounted] = useState(false);
@@ -39,19 +39,28 @@ export default function AdminDashboard() {
           <p className="font-sans font-normal text-[15px] text-white/60 leading-[1.6] max-w-[480px] mb-[28px]">
             Manage your cohort performance, publish curriculum blocks, and broadcast live announcements to all active student nodes.
           </p>
-          <div className="flex gap-3">
-             <Link href="/admin/courses/new" className="bg-[#0f4ff1] text-white h-[44px] rounded-[12px] px-[22px] font-heading font-semibold text-[14px] hover:bg-[#093094] transition-colors flex items-center gap-2">
-                <Plus size={16} />
-                <span>Create Course</span>
+          <div className="flex flex-wrap gap-3">
+             <Link href="/admin/courses" className="bg-[#0f4ff1] text-white h-[44px] rounded-[12px] px-[22px] font-heading font-semibold text-[14px] hover:bg-[#093094] transition-colors flex items-center gap-2">
+                <BookOpen size={16} />
+                <span>Manage Courses</span>
              </Link>
-             <Link href="/admin/reports" className="bg-white/10 text-white border border-white/20 h-[44px] rounded-[12px] px-[22px] font-heading font-semibold text-[14px] hover:bg-white/20 transition-colors flex items-center gap-2">
-                <span>View Reports</span>
+             <Link href="/admin/courses/new" className="bg-white/10 text-white border border-white/20 h-[44px] rounded-[12px] px-[22px] font-heading font-semibold text-[14px] hover:bg-white/20 transition-colors flex items-center gap-2">
+                <Plus size={16} />
+                <span>New Course</span>
              </Link>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full text-left">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
+          <Link href="/admin/courses" className="p-8 border border-[#e8edf5] rounded-[20px] bg-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(15,23,42,0.10)] group cursor-pointer shadow-sm">
+            <div className="w-12 h-12 rounded-[14px] bg-[#f5f3ff] flex items-center justify-center mb-6">
+              <BookOpen size={24} className="text-[#7c3aed]" />
+            </div>
+            <h3 className="font-heading font-bold text-[18px] text-[#0f172a] mb-2 group-hover:text-[#7c3aed] transition-colors">Curriculum Hub</h3>
+            <p className="font-sans text-[14px] text-[#6b7280] leading-relaxed">Organize your modules, lessons, and AI assets in the unified curriculum management center.</p>
+          </Link>
+
           <Link href="/admin/users" className="p-8 border border-[#e8edf5] rounded-[20px] bg-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(15,23,42,0.10)] group cursor-pointer shadow-sm">
             <div className="w-12 h-12 rounded-[14px] bg-[#eff4fe] flex items-center justify-center mb-6">
               <Users size={24} className="text-[#0f4ff1]" />
@@ -64,9 +73,9 @@ export default function AdminDashboard() {
             <div className="w-12 h-12 rounded-[14px] bg-[#ecfdf5] flex items-center justify-center mb-6">
               <Megaphone size={24} className="text-[#16a34a]" />
             </div>
-            <h3 className="font-heading font-bold text-[18px] text-[#0f172a] mb-2 group-hover:text-[#16a34a] transition-colors">Global Broadcast</h3>
+            <h3 className="font-heading font-bold text-[18px] text-[#0f172a] mb-2 group-hover:text-[#16a34a] transition-colors">Communication Hub</h3>
             <p className="font-sans text-[14px] text-[#6b7280] leading-relaxed">
-               Push real-time bulletin updates to the student 'Announcement Modal' source of truth.
+               Broadcast global updates and manage the workshop schedule in the unified communication center.
             </p>
           </Link>
       </div>

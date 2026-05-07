@@ -20,13 +20,39 @@ export default function LoginPage() {
     }
   }, [toastError]);
 
-  const handleLogin = (e: React.FormEvent, role: 'student' | 'admin') => {
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    document.cookie = `user_role=${role}; path=/; max-age=3600`;
-    if (role === 'admin') {
-       window.location.href = '/admin';
-    } else {
-       window.location.href = '/student';
+    if (!email || !password) {
+      toastError("Please enter both email and password.");
+      return;
+    }
+
+    setLoading(true);
+    
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError) {
+      setLoading(false);
+      toastError(authError.message);
+      return;
+    }
+
+    if (authData.user) {
+      // Determine routing based on profile role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', authData.user.id)
+        .single();
+        
+      if (profile?.role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/student';
+      }
     }
   };
 
@@ -88,7 +114,7 @@ export default function LoginPage() {
             </div>
           </div>
           
-          <form className="flex flex-col gap-5">
+          <form className="flex flex-col gap-5" onSubmit={handleEmailLogin}>
              <div className="flex flex-col gap-2">
                <label className="font-sans font-medium text-[13px] text-[#0f172a]">Email Address</label>
                <input 
@@ -98,6 +124,7 @@ export default function LoginPage() {
                  value={email}
                  onChange={(e) => setEmail(e.target.value)}
                  required
+                 disabled={loading}
                />
              </div>
 
@@ -121,6 +148,7 @@ export default function LoginPage() {
                    value={password}
                    onChange={(e) => setPassword(e.target.value)}
                    required
+                   disabled={loading}
                  />
                  <button 
                    type="button" 
@@ -134,18 +162,11 @@ export default function LoginPage() {
 
              <div className="mt-2 flex gap-3">
                <button 
-                 type="button"
-                 onClick={(e) => handleLogin(e, 'student')} 
-                 className="flex-1 h-[44px] bg-[#0f4ff1] hover:bg-[#093094] text-white font-heading font-semibold text-[14px] rounded-[12px] transition-colors"
+                 type="submit"
+                 disabled={loading}
+                 className="w-full h-[44px] bg-[#0f4ff1] hover:bg-[#093094] text-white font-heading font-semibold text-[14px] rounded-[12px] transition-colors disabled:opacity-70"
                >
-                 Log in as Student
-               </button>
-               <button 
-                 type="button"
-                 onClick={(e) => handleLogin(e, 'admin')} 
-                 className="flex-1 h-[44px] bg-white border border-[#0f4ff1] text-[#0f4ff1] hover:bg-[#eff4fe] font-heading font-semibold text-[14px] rounded-[12px] transition-colors"
-               >
-                 Log in as Admin
+                 {loading ? 'Logging in...' : 'Log In'}
                </button>
              </div>
           </form>

@@ -14,10 +14,22 @@ serve(async (req) => {
   try {
     const { lessonId, title, description } = await req.json()
 
-    // SKELETON: Calling Gemini API would happen here
-    // const overview = await callGemini(title, description)
+    // 1. Call Gemini API
+    const apiKey = Deno.env.get('GEMINI_API_KEY')
+    const prompt = `Generate a 3-5 sentence plain-English summary for a lesson titled "${title}" with description "${description}". Your summary should explain what the student will learn. Return ONLY a JSON object with a single field "overview".`
     
-    const mockOverview = "In this comprehensive lesson, we delve into the core principles of Typography layouts and the 8pt Grid system. You will learn how to maintain visual consistency across your interfaces by applying mathematical spacing rules. By the end of this session, you'll be able to create clean, professional-grade layouts that align perfectly to standard design grids."
+    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { response_mime_type: "application/json" }
+      })
+    })
+
+    const geminiData = await geminiRes.json()
+    const aiText = geminiData.candidates[0].content.parts[0].text
+    const { overview } = JSON.parse(aiText)
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -26,7 +38,7 @@ serve(async (req) => {
 
     const { error } = await supabaseAdmin
       .from('lessons')
-      .update({ ai_overview: mockOverview })
+      .update({ ai_overview: overview })
       .eq('id', lessonId)
 
     if (error) throw error

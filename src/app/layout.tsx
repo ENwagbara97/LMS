@@ -23,11 +23,12 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Kreative Hub",
+  title: "Kreativhub",
   description: "Internal LMS for design students",
 };
 
 import { ToastProvider } from "@/hooks/use-toast";
+import { NotificationProvider } from "@/hooks/NotificationContext";
 
 export default function RootLayout({
   children,
@@ -41,7 +42,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         <ToastProvider>
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </ToastProvider>
       </body>
     </html>

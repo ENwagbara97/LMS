@@ -14,16 +14,22 @@ serve(async (req) => {
   try {
     const { lessonId, title } = await req.json()
 
-    // SKELETON: Calling Gemini API would happen here
-    // const resources = await callGemini(title)
+    // 1. Call Gemini API
+    const apiKey = Deno.env.get('GEMINI_API_KEY')
+    const prompt = `Generate 4-6 relevant learning resources (articles, documentation, tools) for a lesson titled "${title}". Return as a JSON array of objects: { title: string, url: string, type: "article" | "pdf" | "tool" | "video", source: string }. Return ONLY the JSON array.`
     
-    const mockResources = [
-      { title: "The 8pt Grid Guide", url: "https://spec.fm/specifics/8-pt-grid", type: "article", source: "Spec.fm" },
-      { title: "Grid System Cheat Sheet", url: "#", type: "pdf", source: "Design Course" },
-      { title: "Layout Grid Calculator", url: "https://gridcalc.com", type: "tool", source: "External Tool" },
-      { title: "Typography Scale Theory", url: "https://type-scale.com", type: "article", source: "Jeremy Church" },
-      { title: "Spacing in Design Systems", url: "https://medium.com", type: "video", source: "Medium" }
-    ]
+    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { response_mime_type: "application/json" }
+      })
+    })
+
+    const geminiData = await geminiRes.json()
+    const aiText = geminiData.candidates[0].content.parts[0].text
+    const resources = JSON.parse(aiText)
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -32,7 +38,7 @@ serve(async (req) => {
 
     const { error } = await supabaseAdmin
       .from('lessons')
-      .update({ ai_resources_json: mockResources })
+      .update({ ai_resources_json: resources })
       .eq('id', lessonId)
 
     if (error) throw error

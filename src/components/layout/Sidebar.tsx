@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
+import { useUser } from "@/hooks/UserContext";
 import {
   Home,
   BookOpen,
@@ -16,10 +18,16 @@ import {
   Users,
   Megaphone,
   ChevronRight,
+  Award,
 } from "lucide-react";
+import { useNotifications } from "@/hooks/NotificationContext";
+import { RealtimeLogo } from "@/components/ui/RealtimeLogo";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const supabase = createClient();
+  const { profile } = useUser();
+
   const [isCollapsed, setIsCollapsed] = React.useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('sidebar_collapsed') === 'true';
@@ -39,20 +47,23 @@ export function Sidebar() {
     { name: "Schedule", href: "/student/schedule", icon: CalendarDays },
     { name: "Exams & Quizzes", href: "/student/exams", icon: FileText },
     { name: "Progress", href: "/student/progress", icon: TrendingUp },
+    { name: "Certificates", href: "/student/certificates", icon: Award },
   ];
 
   const adminLinks = [
     { name: "Overview", href: "/admin", icon: Home, exact: true },
     { name: "Manage Users", href: "/admin/users", icon: Users },
-    { name: "Create Course", href: "/admin/courses/new", icon: BookOpen },
-    { name: "Announcements", href: "/admin/announcements", icon: Megaphone },
+    { name: "Manage Courses", href: "/admin/courses", icon: BookOpen, exact: true },
+    { name: "Communication & Events", href: "/admin/announcements", icon: Megaphone },
     { name: "Reports", href: "/admin/reports", icon: TrendingUp },
   ];
 
   const mainLinks = isAdminRoute ? adminLinks : studentLinks;
 
+  const { unreadCount } = useNotifications();
+
   const studentOptions = [
-    { name: "Notifications", href: "/student/notifications", icon: Bell, badge: 2 },
+    { name: "Notifications", href: "/student/notifications", icon: Bell, badge: unreadCount },
     { name: "Settings", href: "/student/settings", icon: Settings },
   ];
 
@@ -108,12 +119,7 @@ export function Sidebar() {
       } h-full z-10 shrink-0`}
     >
       <div className="h-[60px] flex items-center justify-between px-[20px] shrink-0">
-         {!isCollapsed && (
-          <span className="font-heading font-bold text-[17px] text-[#0f172a] truncate">
-            Kreative Hub
-          </span>
-        )}
-         {isCollapsed && <span className="font-heading font-bold text-lg text-[#0f4ff1] mx-auto">K</span>}
+         <RealtimeLogo collapsed={isCollapsed} />
         
         {!isCollapsed && (
           <button
@@ -165,15 +171,19 @@ export function Sidebar() {
 
         {!isCollapsed && (
           <div className="mt-[24px] px-[20px] flex items-center gap-[12px] cursor-pointer group relative">
-            <div className="w-[36px] h-[36px] rounded-full bg-[#1e293b] text-white flex items-center justify-center font-heading font-bold text-[14px] shrink-0">
-              JS
+            <div className="w-[36px] h-[36px] rounded-full bg-[#1e293b] text-white flex items-center justify-center font-heading font-bold text-[14px] shrink-0 overflow-hidden text-center" style={{ borderRadius: "50%" }}>
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url.startsWith('http') ? profile.avatar_url : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${profile.avatar_url}`} alt="Avatar" className="w-[36px] h-[36px] object-cover" />
+              ) : (
+                "JS"
+              )}
             </div>
             <div className="flex flex-col overflow-hidden">
               <span className="font-heading font-semibold text-[13px] text-[#1a1f36] truncate leading-tight">
-                {isAdminRoute ? "Admin User" : "Jane Student"}
+                {profile?.full_name || (isAdminRoute ? "Admin User" : "Jane Student")}
               </span>
               <span className="font-sans font-normal text-[12px] text-[#6b7280] truncate leading-tight pt-0.5">
-                {isAdminRoute ? "Instructor" : "UI Design"}
+                {profile?.role === 'admin' ? "Instructor" : "Student"}
               </span>
             </div>
             
@@ -182,17 +192,27 @@ export function Sidebar() {
                  <Link href={isAdminRoute ? "/student" : "/admin"} className="font-sans text-[13px] font-medium text-[#0f172a] hover:bg-[#f9fafb] px-3 py-2 rounded-md transition-colors text-left block">
                    {isAdminRoute ? "Student Portal" : "Admin Dashboard"}
                  </Link>
-                 <Link href="/login" onClick={() => document.cookie = "user_role=; max-age=0; path=/;"} className="font-sans text-[13px] font-medium text-[#dc2626] hover:bg-[#fef2f2] px-3 py-2 rounded-md cursor-pointer text-left transition-colors mt-1 block">
+                 <button 
+                   onClick={async () => {
+                     await supabase.auth.signOut();
+                     window.location.href = "/login";
+                   }} 
+                   className="font-sans text-[13px] font-medium text-[#dc2626] hover:bg-[#fef2f2] px-3 py-2 rounded-md cursor-pointer text-left transition-colors mt-1 block w-full"
+                 >
                    Log Out
-                 </Link>
+                 </button>
               </div>
             </div>
           </div>
         )}
         {isCollapsed && (
            <div className="mt-[24px] flex justify-center">
-             <div className="w-[36px] h-[36px] rounded-full bg-[#1e293b] text-white flex items-center justify-center font-heading font-bold text-[14px]">
-               JS
+             <div className="w-[36px] h-[36px] rounded-full bg-[#1e293b] text-white flex items-center justify-center font-heading font-bold text-[14px] overflow-hidden" style={{ borderRadius: "50%" }}>
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url.startsWith('http') ? profile.avatar_url : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${profile.avatar_url}`} alt="Avatar" className="w-[36px] h-[36px] object-cover" />
+              ) : (
+                "JS"
+              )}
              </div>
            </div>
         )}

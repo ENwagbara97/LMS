@@ -11,20 +11,23 @@ export async function GET(request: Request) {
     
     if (!error && user) {
       // Check if user exists in our profile table
-      const { data: profile } = await supabase
+      let { data: profile } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+        .select('role')
+        .eq('user_id', user.id)
         .single()
 
       if (!profile) {
-        // Block access: Log them out and redirect with error
-        await supabase.auth.signOut()
+        // Block access if no profile exists (Item 4)
         return NextResponse.redirect(`${origin}/login?error=unauthorized`)
       }
 
-      // Successful login
-      return NextResponse.redirect(`${origin}/student`)
+      // Successful login - route based on role
+      if (profile.role === 'admin') {
+        return NextResponse.redirect(`${origin}/admin`)
+      } else {
+        return NextResponse.redirect(`${origin}/student`)
+      }
     }
   }
 

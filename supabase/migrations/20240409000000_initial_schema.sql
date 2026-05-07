@@ -1,5 +1,5 @@
 -- DATABASE_SCHEMA.sql
--- Schema definition for Kreative Hub LMS
+-- Schema definition for Kreativhub LMS
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

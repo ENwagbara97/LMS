@@ -2,18 +2,46 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { UserCheck } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SetupPasswordPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleSetup = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const supabase = createClient();
+  const { success, error: toastError } = useToast();
+
+  const handleSetup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === confirmPassword) {
-      document.cookie = `user_role=student; path=/; max-age=3600`;
-      window.location.href = '/student';
-    } else {
-      alert("Passwords do not match.");
+    if (password !== confirmPassword) {
+      toastError("Passwords do not match.");
+      return;
+    }
+    
+    setLoading(true);
+    const { data: authData, error } = await supabase.auth.updateUser({ password });
+    
+    if (error) {
+      setLoading(false);
+      toastError(error.message);
+      return;
+    }
+
+    if (authData.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', authData.user.id)
+        .single();
+        
+      success("Password set successfully!");
+      if (profile?.role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/student';
+      }
     }
   };
 

@@ -1,4 +1,4 @@
--- seed.sql for Kreative Hub
+-- seed.sql for Kreativhub
 
 INSERT INTO public.cohorts (id, name, start_date)
 VALUES 
@@ -16,4 +16,4 @@ VALUES
   ('66666666-6666-6666-6666-666666666666', '33333333-3333-3333-3333-333333333333', 'Color Theory', 'Understanding color palettes.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'youtube', 2, 900);
 
 INSERT INTO public.brand_settings (id, logo_filename, agency_display_name, director_name, director_title)
-VALUES ('00000000-0000-0000-0000-000000000000', 'kreative_hub_logo.png', 'Kreative Hub', 'Jane Director', 'Lead Instructor');
+VALUES ('00000000-0000-0000-0000-000000000000', 'kreative_hub_logo.png', 'Kreativhub', 'Jane Director', 'Lead Instructor');

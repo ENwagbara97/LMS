@@ -1,4 +1,4 @@
-# Component Tree for Kreative Hub
+# Component Tree for Kreativhub
 
 Next.js 14 App Router leverages Server and Client components.
 
