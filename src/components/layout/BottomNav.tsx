@@ -19,14 +19,14 @@ export function BottomNav() {
     { name: "Home", href: "/student", icon: Home },
     { name: "Courses", href: "/student/courses", icon: BookOpen },
     { name: "Exams", href: "/student/exams", icon: FileText },
-    { name: "Menu", href: "/student/settings", icon: Menu },
+    { name: "Settings", href: "/student/settings", icon: User2 },
   ];
 
   const adminLinks = [
     { name: "Home", href: "/admin", icon: Home },
     { name: "Users", href: "/admin/users", icon: BookOpen },
     { name: "Alerts", href: "/admin/announcements", icon: FileText },
-    { name: "Menu", href: "/admin/settings", icon: Menu },
+    { name: "Settings", href: "/admin/settings", icon: User2 },
   ];
 
   const navLinks = isAdminRoute ? adminLinks : studentLinks;

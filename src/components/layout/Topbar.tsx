@@ -117,23 +117,26 @@ export function Topbar() {
         </Link>
 
         {/* User Chip */}
-        <button className="flex items-center gap-[10px] pl-[6px] pr-[12px] py-[6px] rounded-full hover:bg-[#f9fafb] transition-colors border border-[#e8edf5] bg-white focus:outline-none">
+        <Link 
+          href={isAdminRoute ? "/admin/settings" : "/student/settings"}
+          className="flex items-center gap-[10px] pl-[6px] pr-[12px] py-[6px] rounded-full hover:bg-[#f9fafb] transition-colors border border-[#e8edf5] bg-white focus:outline-none"
+        >
           <div className="w-[32px] h-[32px] rounded-full bg-[#0f4ff1] text-white flex items-center justify-center font-heading font-bold text-[12px] shrink-0 overflow-hidden" style={{ borderRadius: "50%" }}>
             {profile?.avatar_url ? (
               <img src={profile.avatar_url.startsWith('http') ? profile.avatar_url : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${profile.avatar_url}`} alt="Avatar" className="w-[32px] h-[32px] object-cover" />
             ) : (
-              "JS"
+              (profile?.full_name || "JS").charAt(0).toUpperCase()
             )}
           </div>
           <div className="hidden md:flex flex-col items-start pr-1">
             <span className="font-heading font-semibold text-[13px] text-[#0f172a] leading-tight">
-              {profile?.full_name ? profile.full_name.split(' ')[0] + ' S.' : 'Jane S.'}
+              {profile?.full_name ? profile.full_name.split(' ')[0] : 'Jane'}
             </span>
             <span className="font-sans font-normal text-[12px] text-[#6b7280] leading-tight mt-[1px]">
               {profile?.role === 'admin' ? "Instructor" : "Student"}
             </span>
           </div>
-        </button>
+        </Link>
       </div>
     </header>
   );

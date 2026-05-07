@@ -45,6 +45,9 @@ export default function AnnouncementsAdminPage() {
   const [activeManager, setActiveManager] = useState<'Webinars' | 'Calendar'>('Webinars');
   const [isLoadingSchedule, setIsLoadingSchedule] = useState(true);
 
+  // Delete Confirmation State
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string, type: 'announcement' | 'webinar' | 'calendar' } | null>(null);
+
   // ─── Data Fetching ──────────────────────────────────────────────────────────
   const fetchData = async () => {
     if (activeTab === 'Broadcasts') {
@@ -126,11 +129,11 @@ export default function AnnouncementsAdminPage() {
   };
 
   const handleDeleteAnnouncement = async (id: string) => {
-    if (!confirm("Delete this?")) return;
     const { error: delError } = await supabase.from("announcements").delete().eq("id", id);
     if (!delError) {
       success("Deleted.");
       setPastAnnouncements(prev => prev.filter(a => a.id !== id));
+      setDeleteConfirm(null);
     }
   };
 
@@ -173,10 +176,13 @@ export default function AnnouncementsAdminPage() {
   };
 
   const handleDeleteEvent = async (id: string, type: 'webinar' | 'calendar') => {
-    if (!confirm("Remove this event?")) return;
     const table = type === 'webinar' ? "webinar_sessions" : "calendar_events";
     const { error: err } = await supabase.from(table).delete().eq("id", id);
-    if (!err) { success("Removed."); fetchData(); }
+    if (!err) { 
+      success("Removed."); 
+      fetchData(); 
+      setDeleteConfirm(null);
+    }
   };
 
   return (
@@ -194,17 +200,17 @@ export default function AnnouncementsAdminPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-8 border-b border-[#e8edf5] mb-8">
+      <div className="flex items-center gap-6 md:gap-8 border-b border-[#e8edf5] mb-8 overflow-x-auto scrollbar-hide whitespace-nowrap">
         <button 
           onClick={() => setActiveTab('Broadcasts')}
-          className={`pb-4 font-heading font-bold text-[15px] relative transition-colors ${activeTab === 'Broadcasts' ? "text-[#0f4ff1]" : "text-[#6b7280] hover:text-[#0f172a]"}`}
+          className={`pb-4 font-heading font-bold text-[14px] md:text-[15px] relative transition-colors ${activeTab === 'Broadcasts' ? "text-[#0f4ff1]" : "text-[#6b7280] hover:text-[#0f172a]"}`}
         >
           Broadcasts
           {activeTab === 'Broadcasts' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0f4ff1]" />}
         </button>
         <button 
           onClick={() => setActiveTab('Schedule')}
-          className={`pb-4 font-heading font-bold text-[15px] relative transition-colors ${activeTab === 'Schedule' ? "text-[#0f4ff1]" : "text-[#6b7280] hover:text-[#0f172a]"}`}
+          className={`pb-4 font-heading font-bold text-[14px] md:text-[15px] relative transition-colors ${activeTab === 'Schedule' ? "text-[#0f4ff1]" : "text-[#6b7280] hover:text-[#0f172a]"}`}
         >
           Event Schedule
           {activeTab === 'Schedule' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0f4ff1]" />}
@@ -260,7 +266,7 @@ export default function AnnouncementsAdminPage() {
                       <p className="font-sans text-[12px] text-[#6b7280] truncate">{ann.body_html}</p>
                     </div>
                   </div>
-                  <button onClick={() => handleDeleteAnnouncement(ann.id)} className="text-[#9ca3af] hover:text-[#ef4444] p-1"><Trash2 size={16} /></button>
+                  <button onClick={() => setDeleteConfirm({ id: ann.id, type: 'announcement' })} className="text-[#9ca3af] hover:text-[#ef4444] p-1"><Trash2 size={16} /></button>
                 </div>
               ))}
             </div>
@@ -268,12 +274,12 @@ export default function AnnouncementsAdminPage() {
         </div>
       ) : (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-           <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-4 bg-[#f1f5f9] p-1 rounded-xl">
+           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+              <div className="flex items-center gap-4 bg-[#f1f5f9] p-1 rounded-xl w-fit">
                 <button onClick={() => setActiveManager('Webinars')} className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${activeManager === 'Webinars' ? "bg-white text-[#0f172a] shadow-sm" : "text-[#64748b] hover:text-[#0f172a]"}`}>Webinars</button>
                 <button onClick={() => setActiveManager('Calendar')} className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${activeManager === 'Calendar' ? "bg-white text-[#0f172a] shadow-sm" : "text-[#64748b] hover:text-[#0f172a]"}`}>Meetings</button>
               </div>
-              <button onClick={() => setIsAddingEvent(true)} className="bg-[#0f4ff1] text-white h-[40px] px-4 rounded-[10px] font-heading font-semibold text-[13px] flex items-center gap-2 hover:bg-[#093094]">
+              <button onClick={() => setIsAddingEvent(true)} className="bg-[#0f4ff1] text-white h-[40px] px-4 rounded-[10px] font-heading font-semibold text-[13px] flex items-center justify-center gap-2 hover:bg-[#093094] w-full md:w-fit">
                 <Plus size={16} /> Add {activeManager === 'Webinars' ? 'Webinar' : 'Meeting'}
               </button>
            </div>
@@ -283,25 +289,48 @@ export default function AnnouncementsAdminPage() {
                {(activeManager === 'Webinars' ? sessions : calendarEvents).map(s => (
                  <div key={s.id} className="bg-white border border-[#e8edf5] rounded-[16px] p-4 flex items-center justify-between shadow-sm">
                     <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center ${activeManager === 'Webinars' ? "bg-[#eff4fe] text-[#0f4ff1]" : "bg-[#f5f3ff] text-[#7c3aed]"}`}>
+                      <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 ${activeManager === 'Webinars' ? "bg-[#eff4fe] text-[#0f4ff1]" : "bg-[#f5f3ff] text-[#7c3aed]"}`}>
                         <span className="text-[14px] font-bold">{new Date(s.session_date || s.event_date).getDate()}</span>
                         <span className="text-[9px] font-bold uppercase">{new Date(s.session_date || s.event_date).toLocaleString('default', {month:'short'})}</span>
                       </div>
-                      <div>
-                        <p className="font-heading font-bold text-[15px]">{s.title || s.event_title}</p>
+                      <div className="min-w-0">
+                        <p className="font-heading font-bold text-[15px] truncate">{s.title || s.event_title}</p>
                         <p className="font-sans text-[12px] text-[#6b7280] flex items-center gap-2">
                            <Clock size={12} /> {s.session_time?.slice(0,5) || new Date(s.event_date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 shrink-0">
                        <button onClick={() => setEditingEvent(s)} className="p-2 text-[#64748b] hover:bg-[#f1f5f9] rounded-lg"><Pencil size={16} /></button>
-                       <button onClick={() => handleDeleteEvent(s.id, activeManager === 'Webinars' ? 'webinar' : 'calendar')} className="p-2 text-[#ef4444] hover:bg-[#fef2f2] rounded-lg"><Trash2 size={16} /></button>
+                       <button onClick={() => setDeleteConfirm({ id: s.id, type: activeManager === 'Webinars' ? 'webinar' : 'calendar' })} className="p-2 text-[#ef4444] hover:bg-[#fef2f2] rounded-lg"><Trash2 size={16} /></button>
                     </div>
                  </div>
                ))}
              </div>
            )}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)} />
+          <div className="bg-white rounded-[20px] p-6 w-full max-w-sm relative z-10 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="font-heading font-bold text-[18px] text-[#0f172a] mb-2">Are you sure?</h3>
+            <p className="font-sans text-[14px] text-[#6b7280] mb-6">This action cannot be undone. This item will be permanently removed.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirm(null)} className="flex-1 h-11 rounded-xl font-bold text-[#64748b] hover:bg-[#f8fafc] transition-colors">Cancel</button>
+              <button 
+                onClick={() => {
+                  if (deleteConfirm.type === 'announcement') handleDeleteAnnouncement(deleteConfirm.id);
+                  else handleDeleteEvent(deleteConfirm.id, deleteConfirm.type);
+                }}
+                className="flex-1 h-11 bg-[#ef4444] text-white rounded-xl font-bold hover:bg-[#dc2626] transition-colors shadow-lg shadow-red-100"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

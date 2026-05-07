@@ -179,35 +179,37 @@ export default function AdminReportsPage() {
             <div className="px-6 py-5 border-b border-[#f1f5f9]">
               <h2 className="font-heading font-bold text-[18px] text-[#0f172a]">High Performing Students</h2>
             </div>
-            <table className="w-full text-left">
-              <thead className="bg-[#f9fafb] border-b border-[#e8edf5] text-[11px] uppercase tracking-wider text-[#6b7280] font-bold">
-                <tr>
-                  <th className="px-6 py-4">Student</th>
-                  <th className="px-6 py-4">Completed</th>
-                  <th className="px-6 py-4">Avg Score</th>
-                  <th className="px-6 py-4">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#f1f5f9]">
-                {topStudents.map((row, i) => (
-                  <tr key={i} className="hover:bg-[#fdfefe] transition-colors cursor-pointer">
-                    <td className="px-6 py-4 font-heading font-semibold text-[14px] text-[#0f172a]">{row.name}</td>
-                    <td className="px-6 py-4 font-sans text-[13px] text-[#4b5563]">{row.courses} units</td>
-                    <td className="px-6 py-4 font-sans font-bold text-[13px] text-[#0f4ff1]">{row.score}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-tight ${row.status === 'Excellence' ? 'bg-[#ecfdf5] text-[#16a34a]' : 'bg-[#eff4fe] text-[#0f4ff1]'}`}>
-                        {row.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                {topStudents.length === 0 && (
+            <div className="overflow-x-auto scrollbar-hide">
+              <table className="w-full text-left min-w-[600px]">
+                <thead className="bg-[#f9fafb] border-b border-[#e8edf5] text-[11px] uppercase tracking-wider text-[#6b7280] font-bold">
                   <tr>
-                    <td colSpan={4} className="px-6 py-10 text-center text-[#9ca3af] font-sans">No activity data yet.</td>
+                    <th className="px-6 py-4">Student</th>
+                    <th className="px-6 py-4">Completed</th>
+                    <th className="px-6 py-4">Avg Score</th>
+                    <th className="px-6 py-4">Status</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[#f1f5f9]">
+                  {topStudents.map((row, i) => (
+                    <tr key={i} className="hover:bg-[#fdfefe] transition-colors cursor-pointer">
+                      <td className="px-6 py-4 font-heading font-semibold text-[14px] text-[#0f172a]">{row.name}</td>
+                      <td className="px-6 py-4 font-sans text-[13px] text-[#4b5563]">{row.courses} units</td>
+                      <td className="px-6 py-4 font-sans font-bold text-[13px] text-[#0f4ff1]">{row.score}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-tight ${row.status === 'Excellence' ? 'bg-[#ecfdf5] text-[#16a34a]' : 'bg-[#eff4fe] text-[#0f4ff1]'}`}>
+                          {row.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {topStudents.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-10 text-center text-[#9ca3af] font-sans">No activity data yet.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}

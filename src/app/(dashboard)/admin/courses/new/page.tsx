@@ -560,24 +560,26 @@ function LessonCard({ lesson, onDelete, onUpdate }: { lesson: Lesson, onDelete: 
   const thumbUrl = lesson.video_source_type === 'youtube' ? getYoutubeThumb(lesson.video_url) : null;
 
   return (
-    <div ref={setNodeRef} style={style} className={`flex items-center gap-4 p-4 border border-[#e8edf5] rounded-[14px] bg-white group ${isDragging ? 'shadow-lg ring-2 ring-[#0f4ff1]/10' : 'hover:border-[#cbd5e1]'}`}>
-       <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-[#cbd5e1] group-hover:text-[#9ca3af] transition-colors">
-         <GripVertical size={18} />
-       </button>
+    <div ref={setNodeRef} style={style} className={`flex flex-col md:flex-row md:items-center gap-4 p-4 border border-[#e8edf5] rounded-[14px] bg-white group ${isDragging ? 'shadow-lg ring-2 ring-[#0f4ff1]/10' : 'hover:border-[#cbd5e1]'}`}>
+       <div className="flex items-center gap-4 w-full md:w-auto">
+         <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-[#cbd5e1] group-hover:text-[#9ca3af] transition-colors">
+           <GripVertical size={18} />
+         </button>
 
-       <div className="w-[32px] h-[32px] rounded-full bg-[#eff4fe] flex items-center justify-center font-mono text-[11px] font-bold text-[#0f4ff1] shrink-0">
-         #{lesson.serial_number}
+         <div className="w-[32px] h-[32px] rounded-full bg-[#eff4fe] flex items-center justify-center font-mono text-[11px] font-bold text-[#0f4ff1] shrink-0">
+           #{lesson.serial_number}
+         </div>
+
+         <div className="w-[48px] h-[48px] rounded-[8px] bg-[#f1f5f9] border border-[#e8edf5] overflow-hidden flex items-center justify-center shrink-0">
+            {thumbUrl ? (
+              <img src={thumbUrl} className="w-full h-full object-cover" alt="Video Thumb" />
+            ) : (
+              <Video size={20} className="text-[#cbd5e1]" />
+            )}
+         </div>
        </div>
 
-       <div className="w-[48px] h-[48px] rounded-[8px] bg-[#f1f5f9] border border-[#e8edf5] overflow-hidden flex items-center justify-center shrink-0">
-          {thumbUrl ? (
-            <img src={thumbUrl} className="w-full h-full object-cover" alt="Video Thumb" />
-          ) : (
-            <Video size={20} className="text-[#cbd5e1]" />
-          )}
-       </div>
-
-       <div className="flex-1 flex flex-col gap-0.5 overflow-hidden">
+       <div className="flex-1 flex flex-col gap-0.5 overflow-hidden w-full">
           {isEditing ? (
             <div className="flex flex-col gap-3">
                <input 

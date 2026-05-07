@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { BackButton } from "@/components/ui/BackButton";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 import { 
   Plus, 
   RefreshCw, 
@@ -11,7 +12,10 @@ import {
   Users, 
   Trash2, 
   X, 
-  ChevronDown 
+  ChevronDown,
+  GripVertical,
+  Video,
+  Pencil
 } from "lucide-react";
 
 export default function AdminUsersPage() {
@@ -399,7 +403,10 @@ export default function AdminUsersPage() {
 
               {/* Header */}
               <div className="flex gap-[16px] items-center mb-[32px]">
-                <div className="w-[64px] h-[64px] rounded-full bg-[#1e293b] text-white flex items-center justify-center font-heading font-bold text-[24px] shrink-0 overflow-hidden">
+                <Link 
+                  href={`/admin/users/${selectedUser.user_id}/settings`}
+                  className="w-[64px] h-[64px] rounded-full bg-[#1e293b] text-white flex items-center justify-center font-heading font-bold text-[24px] shrink-0 overflow-hidden hover:ring-4 hover:ring-[#0f4ff1]/10 transition-all cursor-pointer"
+                >
                   {selectedUser.avatar_url ? (
                     <img
                       src={selectedUser.avatar_url.startsWith("http") ? selectedUser.avatar_url : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${selectedUser.avatar_url}`}
@@ -409,7 +416,7 @@ export default function AdminUsersPage() {
                   ) : (
                     (selectedUser.full_name || "?").charAt(0).toUpperCase()
                   )}
-                </div>
+                </Link>
                 <div className="flex flex-col">
                   <span className="font-heading font-bold text-[20px] text-[#0f172a]">{selectedUser.full_name}</span>
                   <div className="flex items-center gap-2 mt-0.5">
@@ -494,6 +501,24 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
+              {/* Drawer Footer Actions */}
+              <div className="mt-8 pt-6 border-t border-[#f1f5f9] flex gap-3">
+                <button 
+                  onClick={() => setSelectedUser(null)}
+                  className="flex-1 h-[48px] rounded-[12px] font-heading font-semibold text-[14px] text-[#6b7280] border border-[#e8edf5] hover:bg-[#f8fafc] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => {
+                    success("Student profile updated");
+                    setSelectedUser(null);
+                  }}
+                  className="flex-1 h-[48px] bg-[#0f4ff1] text-white rounded-[12px] font-heading font-semibold text-[14px] hover:bg-[#093094] transition-colors shadow-lg shadow-blue-100"
+                >
+                  Save Changes
+                </button>
+              </div>
             </div>
           </div>
         </div>
