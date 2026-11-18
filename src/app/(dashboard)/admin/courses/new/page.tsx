@@ -408,6 +408,7 @@ export default function NewCoursePage() {
                    <SortableModule 
                      key={mod.id} 
                      module={mod} 
+                     courseName={course.title}
                      onUpdate={updateModule}
                      onDelete={deleteModule}
                      onAddLesson={addLesson}
@@ -450,8 +451,9 @@ export default function NewCoursePage() {
   );
 }
 
-function SortableModule({ module, onUpdate, onDelete, onAddLesson, setModules }: { 
-  module: Module, 
+function SortableModule({ module, courseName, onUpdate, onDelete, onAddLesson, setModules }: { 
+  module: Module,
+  courseName: string, 
   onUpdate: any, 
   onDelete: any,
   onAddLesson: any,
