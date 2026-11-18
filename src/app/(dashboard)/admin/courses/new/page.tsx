@@ -537,7 +537,7 @@ function SortableModule({ module, onUpdate, onDelete, onAddLesson, setModules }:
                  <LessonCard 
                    key={lesson.id} 
                    lesson={lesson}
-                   courseName={course.title} 
+                   courseName={courseName} 
                    onDelete={(id: string) => {
                      setModules((mods: Module[]) => mods.map(m => m.id === module.id ? { ...m, lessons: m.lessons.filter(l => l.id !== id) } : m));
                    }}
