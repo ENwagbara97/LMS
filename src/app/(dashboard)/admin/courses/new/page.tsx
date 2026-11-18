@@ -536,7 +536,8 @@ function SortableModule({ module, onUpdate, onDelete, onAddLesson, setModules }:
                {module.lessons.map((lesson) => (
                  <LessonCard 
                    key={lesson.id} 
-                   lesson={lesson} 
+                   lesson={lesson}
+                   courseName={course.title} 
                    onDelete={(id: string) => {
                      setModules((mods: Module[]) => mods.map(m => m.id === module.id ? { ...m, lessons: m.lessons.filter(l => l.id !== id) } : m));
                    }}
@@ -560,7 +561,7 @@ function SortableModule({ module, onUpdate, onDelete, onAddLesson, setModules }:
   );
 }
 
-function LessonCard({ lesson, onDelete, onUpdate }: { lesson: Lesson, onDelete: any, onUpdate: any }) {
+function LessonCard({ lesson, onDelete, onUpdate, courseName }: { lesson: Lesson, onDelete: any, onUpdate: any, courseName: string }) {
   const {
     attributes,
     listeners,
@@ -637,7 +638,7 @@ function LessonCard({ lesson, onDelete, onUpdate }: { lesson: Lesson, onDelete: 
                        if (!tempTitle) return alert("Please enter a title first");
                        const supabase = createClient();
                        const { data, error } = await supabase.functions.invoke('generate-overview', {
-                         body: { lesson_title: tempTitle, course_name: course.title }
+                         body: { lesson_title: tempTitle, course_name: courseName }
                        });
                        if (!error && data.overview) {
                          onUpdate(lesson.id, { ai_overview: data.overview });
