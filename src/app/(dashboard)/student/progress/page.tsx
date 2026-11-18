@@ -111,7 +111,7 @@ export default function ProgressPage() {
         .filter(l => l.score !== null)
         .map(l => calculateGP(Number(l.score)));
       
-      const avgGpa = gpPoints.length > 0 ? Number((gpPoints.reduce((a, b) => a + b, 0) / gpPoints.length).toFixed(1)) : 0.0;
+      const avgGpa = gpPoints.length > 0 ? Number((gpPoints.reduce<number>((a, b) => a + b, 0) / gpPoints.length).toFixed(1)) : 0.0;
 
       // Days active simulation
       const enrollDate = new Date(selectedCourse.enrolled_at);
