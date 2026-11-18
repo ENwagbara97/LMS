@@ -151,7 +151,11 @@ export default function AdminUsersPage() {
       .maybeSingle();
     
     // We can store this in selectedUser or a new state. Let's just add it to selectedUser for simplicity
-    setSelectedUser(prev => ({ ...prev, activeEnrollment: enroll }));
+    setSelectedUser((prev: any) =>
+      prev?.user_id === u.user_id
+        ? { ...prev, activeEnrollment: enroll }
+        : prev
+    );
   };
 
   // ─── Auto-save admin_notes ────────────────────────────────────────────────
