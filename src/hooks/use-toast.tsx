@@ -15,6 +15,7 @@ interface ToastContextType {
   toast: (message: string, type?: ToastType) => void;
   success: (message: string) => void;
   error: (message: string) => void;
+  info: (message: string) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -36,9 +37,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const success = (msg: string) => addToast(msg, 'success');
   const error = (msg: string) => addToast(msg, 'error');
+  const info = (msg: string) => addToast(msg, 'info');
 
   return (
-    <ToastContext.Provider value={{ toast: addToast, success, error }}>
+    <ToastContext.Provider value={{ toast: addToast, success, error, info }}>
       {children}
       <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none">
         {toasts.map((t) => (
