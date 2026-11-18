@@ -194,11 +194,9 @@ export default function LessonViewPage() {
     <div className="w-full flex-1 pb-20 md:pb-10 relative overflow-x-hidden">
       <div className="flex flex-col xl:flex-row gap-6 w-full transition-all duration-500 ease-in-out">
         <div className={`transition-all duration-500 ease-in-out ${isVideoEnded ? "w-full xl:w-[65%]" : "w-full"}`}>
-          <VideoPlayer 
-            sourceType="youtube"
-            url={lessonData?.video_url || ""} 
+          <VideoPlayer
+            src={lessonData?.video_url || ""}
             onEnded={handleVideoEnded}
-            startTime={startTime}
           />
 
           <div className="mt-6">
