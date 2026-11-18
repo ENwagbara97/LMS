@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from 'react';
+import React, { Suspense, useState, useRef, useEffect } from 'react';
 import { Send, UploadCloud, Link as LinkIcon, Video, Trash2, GripVertical, Plus, ChevronDown, ChevronUp, Loader2, Image as ImageIcon, Pencil, Sparkles, File } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { VideoPlayer } from '@/components/features/video/VideoPlayer';
@@ -43,7 +43,7 @@ interface Lesson {
   resources?: { title: string; url: string; file_type: string }[];
 }
 
-export default function NewCoursePage() {
+function NewCourseForm() {
   const { success, error } = useToast();
   const supabase = createClient();
   const thumbInputRef = useRef<HTMLInputElement>(null);
@@ -746,4 +746,10 @@ function LessonCard({ lesson, onDelete, onUpdate, courseName }: { lesson: Lesson
   );
 }
 
-
+export default function NewCoursePage() {
+  return (
+    <Suspense fallback={<div className="p-6">Loading...</div>}>
+      <NewCourseForm />
+    </Suspense>
+  );
+}
