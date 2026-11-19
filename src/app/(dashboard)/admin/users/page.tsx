@@ -178,7 +178,8 @@ export default function AdminUsersPage() {
       .from('enrollments')
       .select('*, courses(title)')
       .eq('student_id', u.user_id)
-      .eq('status', 'active')
+      .order('enrolled_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
     
     // We can store this in selectedUser or a new state. Let's just add it to selectedUser for simplicity
@@ -540,6 +541,12 @@ export default function AdminUsersPage() {
                             const result = await response.json();
                             if (!response.ok) throw new Error(result.error || "Course assignment failed.");
                             setAssignedCourseIds((prev) => prev.includes(selectedCourseId) ? prev : [...prev, selectedCourseId]);
+                            if (!selectedUser.activeEnrollment) {
+                              const newlyAssignedCourse = availableCourses.find((course) => course.id === selectedCourseId);
+                              setSelectedUser((prev: any) => prev?.user_id === selectedUser.user_id
+                                ? { ...prev, activeEnrollment: newlyAssignedCourse ? { courses: { title: newlyAssignedCourse.title }, progress_percent: 0 } : null }
+                                : prev);
+                            }
                             setSelectedCourseId("");
                             success("Course assigned to student.");
                           } catch (err) {
