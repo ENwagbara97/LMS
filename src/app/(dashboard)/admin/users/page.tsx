@@ -159,7 +159,9 @@ export default function AdminUsersPage() {
     setSelectedCohortId(u.cohort_id || "");
     setSelectedCourseId("");
     setAssignedCourseIds([]);
-    await fetchAssignmentOptions(u.user_id);
+    if (String(u.role || "").toLowerCase() === "student") {
+      await fetchAssignmentOptions(u.user_id);
+    }
     
     // Fetch real progress
     const { data: prog } = await supabase
@@ -471,7 +473,7 @@ export default function AdminUsersPage() {
                       value={selectedCohortId}
                       onChange={(e) => setSelectedCohortId(e.target.value)}
                       className="w-full h-11 px-3 border border-[#e8edf5] rounded-[10px] bg-white text-[14px] outline-none focus:border-[#0f4ff1]"
-                      disabled={isSavingCohort}
+                      disabled={isSavingCohort || isLoadingAssignmentOptions}
                     >
                       <option value="">{isLoadingAssignmentOptions ? "Loading cohorts..." : "No cohort"}</option>
                       {cohorts.map((cohort) => (
