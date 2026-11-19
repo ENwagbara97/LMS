@@ -38,6 +38,8 @@ export default function AdminUsersPage() {
   const [assignedCourseIds, setAssignedCourseIds] = useState<string[]>([]);
   const [isSavingCohort, setIsSavingCohort] = useState(false);
   const [isAssigningCourse, setIsAssigningCourse] = useState(false);
+  const [isLoadingAssignmentOptions, setIsLoadingAssignmentOptions] = useState(false);
+  const [assignmentOptionsError, setAssignmentOptionsError] = useState("");
 
   const [courseGroups, setCourseGroups] = useState<string[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
@@ -59,36 +61,37 @@ export default function AdminUsersPage() {
     setIsLoading(false);
   };
 
-  const fetchCohorts = async () => {
-    const { data } = await supabase.from("cohorts").select("*").order("name");
-    if (data) setCohorts(data);
-  };
+  const fetchAssignmentOptions = async (studentId?: string) => {
+    setIsLoadingAssignmentOptions(true);
+    setAssignmentOptionsError("");
 
-  const fetchAvailableCourses = async () => {
-    const { data, error: coursesError } = await supabase
-      .from("courses")
-      .select("id, title, course_group")
-      .order("title");
-    if (coursesError) {
-      error("Failed to load courses for assignment.");
-      return;
-    }
-    setAvailableCourses(data || []);
-  };
+    try {
+      const query = studentId ? `?studentId=${encodeURIComponent(studentId)}` : "";
+      const response = await fetch(`/api/admin/assignment-options${query}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Could not load cohort and course options.");
+      }
 
-  const fetchCourseGroups = async () => {
-    const { data } = await supabase.from("courses").select("course_group");
-    if (data) {
-      const groups = Array.from(new Set(data.map(d => d.course_group))).filter(Boolean) as string[];
-      setCourseGroups(groups);
+      setCohorts(result.cohorts || []);
+      setAvailableCourses(result.courses || []);
+      setCourseGroups(result.courseGroups || []);
+      if (studentId) setAssignedCourseIds(result.assignedCourseIds || []);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not load assignment options.";
+      setAssignmentOptionsError(message);
+      error(message);
+    } finally {
+      setIsLoadingAssignmentOptions(false);
     }
   };
 
   useEffect(() => {
     fetchUsers();
-    fetchCohorts();
-    fetchCourseGroups();
-    fetchAvailableCourses();
+    fetchAssignmentOptions();
   }, []);
 
   // ─── Add User ───────────────────────────────────────────────────────────────
@@ -156,15 +159,7 @@ export default function AdminUsersPage() {
     setSelectedCohortId(u.cohort_id || "");
     setSelectedCourseId("");
     setAssignedCourseIds([]);
-    const { data: existingEnrollments, error: enrollmentListError } = await supabase
-      .from("enrollments")
-      .select("course_id")
-      .eq("student_id", u.user_id);
-    if (enrollmentListError) {
-      error("Could not load this student's course assignments.");
-    } else {
-      setAssignedCourseIds((existingEnrollments || []).map((item: any) => item.course_id));
-    }
+    await fetchAssignmentOptions(u.user_id);
     
     // Fetch real progress
     const { data: prog } = await supabase
@@ -468,7 +463,7 @@ export default function AdminUsersPage() {
               </div>
 
               {/* Existing student assignments */}
-              {selectedUser.role === "student" && (
+              {String(selectedUser.role || "").toLowerCase() === "student" && (
                 <div className="mb-[32px] rounded-[16px] border border-[#e8edf5] p-5">
                   <h4 className="font-heading font-bold text-[15px] text-[#0f172a] mb-4">Cohort Assignment</h4>
                   <div className="flex flex-col gap-3">
@@ -478,14 +473,20 @@ export default function AdminUsersPage() {
                       className="w-full h-11 px-3 border border-[#e8edf5] rounded-[10px] bg-white text-[14px] outline-none focus:border-[#0f4ff1]"
                       disabled={isSavingCohort}
                     >
-                      <option value="">No cohort</option>
+                      <option value="">{isLoadingAssignmentOptions ? "Loading cohorts..." : "No cohort"}</option>
                       {cohorts.map((cohort) => (
                         <option key={cohort.id} value={cohort.id}>{cohort.name}</option>
                       ))}
                     </select>
+                    {assignmentOptionsError && (
+                      <p className="text-[12px] text-red-600">{assignmentOptionsError}</p>
+                    )}
+                    {!isLoadingAssignmentOptions && !assignmentOptionsError && cohorts.length === 0 && (
+                      <p className="text-[12px] text-[#9ca3af]">No cohorts are available yet. Create a cohort before assigning one.</p>
+                    )}
                     <button
                       type="button"
-                      disabled={isSavingCohort || selectedCohortId === (selectedUser.cohort_id || "")}
+                      disabled={isSavingCohort || isLoadingAssignmentOptions || selectedCohortId === (selectedUser.cohort_id || "")}
                       onClick={async () => {
                         setIsSavingCohort(true);
                         try {
@@ -522,14 +523,17 @@ export default function AdminUsersPage() {
                         className="w-full h-11 px-3 border border-[#e8edf5] rounded-[10px] bg-white text-[14px] outline-none focus:border-[#0f4ff1]"
                         disabled={isAssigningCourse}
                       >
-                        <option value="">Select a course</option>
+                        <option value="">{isLoadingAssignmentOptions ? "Loading courses..." : "Select a course"}</option>
                         {availableCourses.filter((course) => !assignedCourseIds.includes(course.id)).map((course) => (
                           <option key={course.id} value={course.id}>{course.title}</option>
                         ))}
                       </select>
+                      {!isLoadingAssignmentOptions && !assignmentOptionsError && availableCourses.filter((course) => !assignedCourseIds.includes(course.id)).length === 0 && (
+                        <p className="text-[12px] text-[#9ca3af]">No unassigned courses are available for this student.</p>
+                      )}
                       <button
                         type="button"
-                        disabled={!selectedCourseId || isAssigningCourse}
+                        disabled={!selectedCourseId || isAssigningCourse || isLoadingAssignmentOptions}
                         onClick={async () => {
                           setIsAssigningCourse(true);
                           try {
