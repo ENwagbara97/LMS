@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { BackButton } from "@/components/ui/BackButton";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Loader2, Plus, RefreshCw, Users } from "lucide-react";
@@ -14,12 +14,14 @@ type Cohort = {
 
 export default function AdminCohortsPage() {
   const { success, error } = useToast();
+  const errorRef = useRef(error);
+  errorRef.current = error;
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
 
-  const fetchCohorts = async () => {
+  const fetchCohorts = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch("/api/admin/cohorts", {
@@ -30,15 +32,15 @@ export default function AdminCohortsPage() {
       if (!response.ok) throw new Error(result.error || "Unable to load cohorts.");
       setCohorts(result.cohorts || []);
     } catch (err) {
-      error(err instanceof Error ? err.message : "Unable to load cohorts.");
+      errorRef.current(err instanceof Error ? err.message : "Unable to load cohorts.");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void fetchCohorts();
-  }, []);
+  }, [fetchCohorts]);
 
   const handleCreate = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
