@@ -61,12 +61,12 @@ export default function AdminDashboard() {
             <p className="font-sans text-[14px] text-[#6b7280] leading-relaxed">Organize your modules, lessons, and AI assets in the unified curriculum management center.</p>
           </Link>
 
-          <Link href="/admin/users" className="p-8 border border-[#e8edf5] rounded-[20px] bg-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(15,23,42,0.10)] group cursor-pointer shadow-sm">
+          <Link href="/admin/cohorts" className="p-8 border border-[#e8edf5] rounded-[20px] bg-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(15,23,42,0.10)] group cursor-pointer shadow-sm">
             <div className="w-12 h-12 rounded-[14px] bg-[#eff4fe] flex items-center justify-center mb-6">
               <Users size={24} className="text-[#0f4ff1]" />
             </div>
             <h3 className="font-heading font-bold text-[18px] text-[#0f172a] mb-2 group-hover:text-[#0f4ff1] transition-colors">Manage Cohorts</h3>
-            <p className="font-sans text-[14px] text-[#6b7280] leading-relaxed">Review student enrollment quotas, map permission roles, and track active sessions.</p>
+            <p className="font-sans text-[14px] text-[#6b7280] leading-relaxed">Create and manage the LMS cohorts used when assigning students.</p>
           </Link>
           
           <Link href="/admin/announcements" className="p-8 border border-[#e8edf5] rounded-[20px] bg-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(15,23,42,0.10)] group cursor-pointer shadow-sm">
