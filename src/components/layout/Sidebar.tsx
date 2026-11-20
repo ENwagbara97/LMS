@@ -53,6 +53,7 @@ export function Sidebar() {
   const adminLinks = [
     { name: "Overview", href: "/admin", icon: Home, exact: true },
     { name: "Manage Users", href: "/admin/users", icon: Users },
+    { name: "Manage Cohorts", href: "/admin/cohorts", icon: CalendarDays },
     { name: "Manage Courses", href: "/admin/courses", icon: BookOpen, exact: true },
     { name: "Communication & Events", href: "/admin/announcements", icon: Megaphone },
     { name: "Reports", href: "/admin/reports", icon: TrendingUp },
