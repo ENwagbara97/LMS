@@ -488,11 +488,7 @@ export default function AdminUsersPage() {
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[13px] text-[#6b7280]">{selectedUser.email}</span>
                     <span className="text-[#e8edf5]">|</span>
-                    {String(selectedUser.role || "").toLowerCase() !== "student" ? (
-                <div className="mb-[32px] rounded-[16px] border border-[#e8edf5] bg-[#f8fafc] px-5 py-4 text-[13px] text-[#64748b]">
-                  Cohorts and courses apply to students only.
-                </div>
-              ) : (
+                    {String(selectedUser.role || "").toLowerCase() === "student" && (
                       <span className="text-[12px] font-bold text-[#0f4ff1] uppercase tracking-wider">{selectedUser.cohorts?.name || "No Cohort"}</span>
                     )}
                   </div>
@@ -504,7 +500,11 @@ export default function AdminUsersPage() {
               </div>
 
               {/* Existing student assignments */}
-              {String(selectedUser.role || "").toLowerCase() === "student" && (
+              {String(selectedUser.role || "").toLowerCase() !== "student" ? (
+                <div className="mb-[32px] rounded-[16px] border border-[#e8edf5] bg-[#f8fafc] px-5 py-4 text-[13px] text-[#64748b]">
+                  Cohorts and courses apply to students only.
+                </div>
+              ) : (
                 <div className="mb-[32px] rounded-[16px] border border-[#e8edf5] p-5">
                   <h4 className="font-heading font-bold text-[15px] text-[#0f172a] mb-4">Cohort Assignment</h4>
                   <div className="flex flex-col gap-3">
