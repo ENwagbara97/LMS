@@ -25,7 +25,7 @@ async function isAdmin() {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  return !profileError && profile?.role === "admin";
+  return !profileError && String(profile?.role || "").toLowerCase() === "admin";
 }
 
 export async function GET(request: Request) {
@@ -61,11 +61,11 @@ export async function GET(request: Request) {
 
       const { data: profile, error: profileError } = await supabaseAdmin
         .from("profiles")
-        .select("user_id, role")
+        .select("user_id, role, cohort_id")
         .eq("user_id", studentId)
         .maybeSingle();
       if (profileError) throw profileError;
-      if (!profile || String(profile.role).toLowerCase() !== "student") {
+      if (!profile || String(profile.role || "").toLowerCase() !== "student") {
         return NextResponse.json({ error: "The selected account is not a student." }, { status: 404 });
       }
 
@@ -82,6 +82,7 @@ export async function GET(request: Request) {
       courses: courses || [],
       courseGroups,
       assignedCourseIds,
+      cohortId: studentId ? (await supabaseAdmin.from("profiles").select("cohort_id").eq("user_id", studentId).maybeSingle()).data?.cohort_id || null : null,
     });
   } catch (err) {
     console.error("Admin assignment options error:", err);
