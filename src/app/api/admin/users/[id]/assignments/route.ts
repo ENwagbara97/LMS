@@ -113,7 +113,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     const { data: profile, error: profileError } = await getStudentProfile(supabaseAdmin, id);
     if (profileError) throw profileError;
     if (!profile) return NextResponse.json({ error: "User not found." }, { status: 404 });
-    if (profile.role !== "student") {
+    if (String(profile.role || "").toLowerCase() !== "student") {
       return NextResponse.json({ error: "Only student accounts can be enrolled in courses." }, { status: 400 });
     }
 
