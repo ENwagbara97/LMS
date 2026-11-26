@@ -53,6 +53,7 @@ export async function GET(request: Request) {
 
     const studentId = new URL(request.url).searchParams.get("studentId");
     let assignedCourseIds: string[] = [];
+    let cohortId: string | null = null;
 
     if (studentId) {
       if (!UUID_PATTERN.test(studentId)) {
@@ -69,6 +70,8 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "The selected account is not a student." }, { status: 404 });
       }
 
+      cohortId = profile.cohort_id || null;
+
       const { data: enrollments, error: enrollmentsError } = await supabaseAdmin
         .from("enrollments")
         .select("course_id")
@@ -82,7 +85,7 @@ export async function GET(request: Request) {
       courses: courses || [],
       courseGroups,
       assignedCourseIds,
-      cohortId: studentId ? (await supabaseAdmin.from("profiles").select("cohort_id").eq("user_id", studentId).maybeSingle()).data?.cohort_id || null : null,
+      cohortId,
     });
   } catch (err) {
     console.error("Admin assignment options error:", err);
