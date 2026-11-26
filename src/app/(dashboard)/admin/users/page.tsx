@@ -538,11 +538,8 @@ export default function AdminUsersPage() {
                           });
                           const result = await response.json();
                           if (!response.ok) throw new Error(result.error || "Cohort update failed.");
-                          const cohort = cohorts.find((item) => item.id === selectedCohortId);
-                          const updated = { ...selectedUser, cohort_id: selectedCohortId || null, cohorts: cohort ? { name: cohort.name } : null };
-                          setSelectedUser(updated);
-                          setUsers((prev) => prev.map((user) => user.user_id === updated.user_id ? { ...user, ...updated } : user));
-                          success("Student cohort updated.");
+                          await refreshSelectedStudent(selectedUser.user_id);
+                          success("Student cohort updated and verified.");
                         } catch (err) {
                           error(err instanceof Error ? err.message : "Could not update the cohort.");
                         } finally {
@@ -569,8 +566,14 @@ export default function AdminUsersPage() {
                           <option key={course.id} value={course.id}>{course.title}</option>
                         ))}
                       </select>
-                      {!isLoadingAssignmentOptions && !assignmentOptionsError && availableCourses.filter((course) => !assignedCourseIds.includes(course.id)).length === 0 && (
-                        <p className="text-[12px] text-[#9ca3af]">No unassigned courses are available for this student.</p>
+                      {assignmentOptionsError && (
+                        <p className="text-[12px] text-red-600">{assignmentOptionsError}</p>
+                      )}
+                      {!isLoadingAssignmentOptions && !assignmentOptionsError && availableCourses.length === 0 && (
+                        <p className="text-[12px] text-[#9ca3af]">No courses found.</p>
+                      )}
+                      {!isLoadingAssignmentOptions && !assignmentOptionsError && availableCourses.length > 0 && availableCourses.every((course) => assignedCourseIds.includes(course.id)) && (
+                        <p className="text-[12px] text-[#9ca3af]">All available courses are already assigned to this student.</p>
                       )}
                       <button
                         type="button"
@@ -585,16 +588,10 @@ export default function AdminUsersPage() {
                             });
                             const result = await response.json();
                             if (!response.ok) throw new Error(result.error || "Course assignment failed.");
-                            setAssignedCourseIds((prev) => prev.includes(selectedCourseId) ? prev : [...prev, selectedCourseId]);
-                            if (!selectedUser.activeEnrollment) {
-                              const newlyAssignedCourse = availableCourses.find((course) => course.id === selectedCourseId);
-                              setSelectedUser((prev: any) => prev?.user_id === selectedUser.user_id
-                                ? { ...prev, activeEnrollment: newlyAssignedCourse ? { courses: { title: newlyAssignedCourse.title }, progress_percent: 0 } : null }
-                                : prev);
-                            }
-                            setSelectedCourseId("");
-                            success("Course assigned to student.");
-                          } catch (err) {
+                             await refreshSelectedStudent(selectedUser.user_id);
+                             setSelectedCourseId("");
+                             success("Course assigned and enrolment verified.");
+                           } catch (err) {
                             error(err instanceof Error ? err.message : "Could not assign the course.");
                           } finally {
                             setIsAssigningCourse(false);
