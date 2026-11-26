@@ -24,7 +24,7 @@ async function isAdmin() {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  return !error && profile?.role === "admin";
+  return !error && String(profile?.role || "").toLowerCase() === "admin";
 }
 
 async function getStudentProfile(supabaseAdmin: ReturnType<typeof getAdminClient>, userId: string) {
@@ -59,7 +59,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const { data: profile, error: profileError } = await getStudentProfile(supabaseAdmin, id);
     if (profileError) throw profileError;
     if (!profile) return NextResponse.json({ error: "User not found." }, { status: 404 });
-    if (profile.role !== "student") {
+    if (String(profile.role || "").toLowerCase() !== "student") {
       return NextResponse.json({ error: "Only student accounts can be assigned to a cohort." }, { status: 400 });
     }
 
