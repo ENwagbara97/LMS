@@ -79,7 +79,10 @@ export default function AdminUsersPage() {
       setCohorts(result.cohorts || []);
       setAvailableCourses(result.courses || []);
       setCourseGroups(result.courseGroups || []);
-      if (studentId) setAssignedCourseIds(result.assignedCourseIds || []);
+      if (studentId) {
+        setAssignedCourseIds(result.assignedCourseIds || []);
+        setSelectedCohortId(result.cohortId || "");
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Could not load assignment options.";
       setAssignmentOptionsError(message);
@@ -120,7 +123,9 @@ export default function AdminUsersPage() {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to create user");
 
-      success("User invited and profile created.");
+      success(result.warnings?.length
+        ? `User created. ${result.warnings.join(" ")}`
+        : "User invited and profile created.");
       setIsAddOpen(false);
       setSelectedGroups([]);
       setSelectedLevel("Beginner");
@@ -185,6 +190,34 @@ export default function AdminUsersPage() {
         ? { ...prev, activeEnrollment: enroll }
         : prev
     );
+  };
+
+  // Refresh the selected student's profile and enrolments from Supabase after writes.
+  const refreshSelectedStudent = async (studentId: string) => {
+    await fetchAssignmentOptions(studentId);
+
+    const [{ data: profile, error: profileError }, { data: enrollments, error: enrollmentsError }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("*, cohorts(name)")
+        .eq("user_id", studentId)
+        .single(),
+      supabase
+        .from("enrollments")
+        .select("*, courses(title)")
+        .eq("student_id", studentId)
+        .order("enrolled_at", { ascending: false }),
+    ]);
+
+    if (profileError) throw profileError;
+    if (enrollmentsError) throw enrollmentsError;
+
+    const updated = {
+      ...profile,
+      activeEnrollment: enrollments?.[0] || null,
+    };
+    setSelectedUser((current: any) => current?.user_id === studentId ? updated : current);
+    setUsers((current) => current.map((user) => user.user_id === studentId ? { ...user, ...profile } : user));
   };
 
   // ─── Auto-save admin_notes ────────────────────────────────────────────────
@@ -455,7 +488,13 @@ export default function AdminUsersPage() {
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[13px] text-[#6b7280]">{selectedUser.email}</span>
                     <span className="text-[#e8edf5]">|</span>
-                    <span className="text-[12px] font-bold text-[#0f4ff1] uppercase tracking-wider">{selectedUser.cohorts?.name || "No Cohort"}</span>
+                    {String(selectedUser.role || "").toLowerCase() !== "student" ? (
+                <div className="mb-[32px] rounded-[16px] border border-[#e8edf5] bg-[#f8fafc] px-5 py-4 text-[13px] text-[#64748b]">
+                  Cohorts and courses apply to students only.
+                </div>
+              ) : (
+                      <span className="text-[12px] font-bold text-[#0f4ff1] uppercase tracking-wider">{selectedUser.cohorts?.name || "No Cohort"}</span>
+                    )}
                   </div>
                   <span className="text-[12px] text-[#9ca3af] mt-2 flex items-center gap-2">
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#16a34a]" />
@@ -475,7 +514,7 @@ export default function AdminUsersPage() {
                       className="w-full h-11 px-3 border border-[#e8edf5] rounded-[10px] bg-white text-[14px] outline-none focus:border-[#0f4ff1]"
                       disabled={isSavingCohort || isLoadingAssignmentOptions}
                     >
-                      <option value="">{isLoadingAssignmentOptions ? "Loading cohorts..." : "No cohort"}</option>
+                      <option value="">{isLoadingAssignmentOptions ? "Loading cohorts..." : cohorts.length === 0 ? "No cohorts found" : "No cohort"}</option>
                       {cohorts.map((cohort) => (
                         <option key={cohort.id} value={cohort.id}>{cohort.name}</option>
                       ))}
@@ -484,7 +523,7 @@ export default function AdminUsersPage() {
                       <p className="text-[12px] text-red-600">{assignmentOptionsError}</p>
                     )}
                     {!isLoadingAssignmentOptions && !assignmentOptionsError && cohorts.length === 0 && (
-                      <p className="text-[12px] text-[#9ca3af]">No cohorts are available yet. Create a cohort before assigning one.</p>
+                      <p className="text-[12px] text-[#9ca3af]">No cohorts found. Create a cohort in Cohort Management before assigning one.</p>
                     )}
                     <button
                       type="button"
