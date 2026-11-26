@@ -83,10 +83,12 @@ export default function AdminUsersPage() {
         setAssignedCourseIds(result.assignedCourseIds || []);
         setSelectedCohortId(result.cohortId || "");
       }
+      return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Could not load assignment options.";
       setAssignmentOptionsError(message);
       error(message);
+      return false;
     } finally {
       setIsLoadingAssignmentOptions(false);
     }
@@ -194,7 +196,10 @@ export default function AdminUsersPage() {
 
   // Refresh the selected student's profile and enrolments from Supabase after writes.
   const refreshSelectedStudent = async (studentId: string) => {
-    await fetchAssignmentOptions(studentId);
+    const optionsLoaded = await fetchAssignmentOptions(studentId);
+    if (!optionsLoaded) {
+      throw new Error("The assignment was saved, but the latest options could not be refreshed. Please refresh the page.");
+    }
 
     const [{ data: profile, error: profileError }, { data: enrollments, error: enrollmentsError }] = await Promise.all([
       supabase
